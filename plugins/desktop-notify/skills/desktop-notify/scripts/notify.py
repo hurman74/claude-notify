@@ -55,7 +55,7 @@ def state_path(session_id):
 
 def load_state(session_id):
     try:
-        with open(state_path(session_id)) as f:
+        with open(state_path(session_id), encoding="utf-8") as f:
             return json.load(f)
     except (OSError, ValueError):
         return {}
@@ -63,7 +63,7 @@ def load_state(session_id):
 
 def save_state(session_id, state):
     try:
-        with open(state_path(session_id), "w") as f:
+        with open(state_path(session_id), "w", encoding="utf-8") as f:
             json.dump(state, f)
     except OSError:
         pass
@@ -162,7 +162,9 @@ def terminal_is_focused():
 
 def notify(title, message, group="claude-code"):
     if env_flag("CLAUDE_NOTIFY_DRY_RUN", False):
-        print(json.dumps({"title": title, "message": message}, ensure_ascii=False))
+        out = json.dumps({"title": title, "message": message}, ensure_ascii=False) + "\n"
+        sys.stdout.buffer.write(out.encode("utf-8"))
+        sys.stdout.flush()
         return
     sound = os.environ.get("CLAUDE_NOTIFY_SOUND", "Glass")
     muted = sound.lower() == "none"
@@ -258,7 +260,8 @@ def main():
         notify(get("--title", "Claude Code"), get("--message", "Notification"))
         return
     try:
-        data = json.loads(sys.stdin.read() or "{}") if not sys.stdin.isatty() else {}
+        raw = sys.stdin.buffer.read().decode("utf-8", "replace") if not sys.stdin.isatty() else ""
+        data = json.loads(raw or "{}")
     except (ValueError, OSError):
         data = {}
     handle_hook(data)

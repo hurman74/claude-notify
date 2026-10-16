@@ -18,16 +18,18 @@ class NotifyHookTest(unittest.TestCase):
 
     def run_hook(self, payload, **env):
         payload = {"session_id": "s1", "cwd": "/work/my-app", **payload}
-        out = subprocess.run([sys.executable, SCRIPT], input=json.dumps(payload), text=True,
-                             capture_output=True, env={**self.env, **env}).stdout.strip()
+        out = subprocess.run([sys.executable, SCRIPT], input=json.dumps(payload).encode("utf-8"),
+                             capture_output=True, env={**self.env, **env}).stdout.decode("utf-8").strip()
         return json.loads(out) if out else None
 
     def start_turn(self, seconds_ago):
         self.run_hook({"hook_event_name": "UserPromptSubmit"})
         path = os.path.join(self.state, "s1.json")
-        state = json.load(open(path))
+        with open(path, encoding="utf-8") as f:
+            state = json.load(f)
         state["turn_start"] = time.time() - seconds_ago
-        json.dump(state, open(path, "w"))
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(state, f)
 
     def test_user_prompt_submit_prints_nothing(self):
         self.assertIsNone(self.run_hook({"hook_event_name": "UserPromptSubmit"}))
@@ -47,7 +49,7 @@ class NotifyHookTest(unittest.TestCase):
     def test_summary_from_transcript(self):
         self.start_turn(60)
         path = os.path.join(self.state, "t.jsonl")
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(json.dumps({"type": "user", "message": {"content": "do it"}}) + "\n")
             f.write(json.dumps({"type": "assistant", "message": {"content": [
                 {"type": "text", "text": "Deployed to staging."}]}}) + "\n")
@@ -80,6 +82,11 @@ class NotifyHookTest(unittest.TestCase):
                            "message": "Claude is waiting for your input"})
         self.assertIn("input", n["title"].lower())
 
+    def test_non_ascii_message(self):
+        n = self.run_hook({"hook_event_name": "Notification",
+                           "message": "Claude needs your permission: café ✓"})
+        self.assertIn("café ✓", n["message"])
+
     def test_bad_input_never_fails(self):
         result = subprocess.run([sys.executable, SCRIPT], input="not json", text=True,
                                 capture_output=True, env=self.env)
@@ -87,7 +94,7 @@ class NotifyHookTest(unittest.TestCase):
 
     def test_manual_mode(self):
         out = subprocess.run([sys.executable, SCRIPT, "--title", "T", "--message", "M"],
-                             text=True, capture_output=True, env=self.env).stdout
+                             capture_output=True, env=self.env).stdout.decode("utf-8")
         self.assertEqual(json.loads(out), {"title": "T", "message": "M"})
 
 

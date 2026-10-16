@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- Windows: read hook input and write output as UTF-8, so emoji and non-English text work.
+
 ## 1.1.0
 
 - Smarter: no "done" for quick turns (`CLAUDE_NOTIFY_MIN_SECONDS`, default 10 s).
