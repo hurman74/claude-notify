@@ -1,0 +1,12 @@
+{
+  "name": "claude-notify",
+  "owner": { "name": "hurman74", "email": "hurman74@gmail.com" },
+  "metadata": { "description": "Desktop notifications for Claude Code" },
+  "plugins": [
+    {
+      "name": "desktop-notify",
+      "source": "./plugins/desktop-notify",
+      "description": "Native desktop notification (macOS, Linux, Windows) when Claude Code needs your input or finishes a task."
+    }
+  ]
+}

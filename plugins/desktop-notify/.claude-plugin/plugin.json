@@ -1,0 +1,9 @@
+{
+  "name": "desktop-notify",
+  "version": "1.0.0",
+  "description": "Native desktop notification (macOS, Linux, Windows) when Claude Code needs your input or finishes a task.",
+  "author": { "name": "hurman74", "email": "hurman74@gmail.com" },
+  "repository": "https://github.com/hurman74/claude-notify",
+  "license": "MIT",
+  "keywords": ["notification", "hooks", "productivity"]
+}
